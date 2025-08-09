@@ -1,0 +1,1318 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Startup Empire</title>
+<style>
+  :root{
+    --bg:#0f1320; --card:#171b2e; --accent:#5fd080; --accent2:#6ea8fe; --text:#f5f7ff;
+    --muted:#b9c0d9; --danger:#ff6b6b; --warn:#ffd166; --line:#20253b; --chip:#0e1223;
+    --ok:#5fd080; --mid:#ffd166; --bad:#ff6b6b;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:linear-gradient(180deg,#0b0e19,#0f1320);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial}
+  header{padding:12px 16px;position:sticky;top:0;background:#0b0e19cc;backdrop-filter:blur(6px);border-bottom:1px solid var(--line);z-index:5;display:flex;align-items:center;gap:10px}
+  h1{font-size:18px;margin:0}
+  .header-spacer{flex:1}
+  .wrap{padding:14px;max-width:1240px;margin:0 auto}
+  .grid{display:grid;gap:12px}
+  @media(min-width:1100px){.grid{grid-template-columns:1.25fr .75fr}}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px}
+  .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .stats{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+  @media(min-width:580px){.stats{grid-template-columns:repeat(5,1fr)}}
+  .stat{background:var(--chip);border:1px solid var(--line);border-radius:10px;padding:10px}
+  .stat b{display:block;font-size:12px;color:var(--muted)}
+  .stat .v{font-size:18px;margin-top:4px}
+  button{
+    border:0;border-radius:12px;padding:10px 12px;font-weight:700;color:#0b0e19;background:var(--accent);
+    box-shadow:0 4px 0 #2b6d45;transition:transform .02s;flex:0 0 auto;cursor:pointer
+  }
+  button:active{transform:translateY(1px)}
+  .btn-lg{padding:12px 14px;min-width:120px}
+  button.secondary{background:var(--accent2);box-shadow:0 4px 0 #3a5fa7}
+  button.warn{background:var(--warn);box-shadow:0 4px 0 #b59638;color:#1a1405}
+  button.danger{background:var(--danger);box-shadow:0 4px 0 #b04242}
+  button.ghost{background:transparent;color:var(--text);border:1px dashed var(--line);box-shadow:none}
+  button:disabled{opacity:.55;box-shadow:none;cursor:not-allowed}
+  label{font-size:13px;color:var(--muted)}
+  input,select{
+    width:100%;padding:10px;border-radius:10px;border:1px solid #283052;background:#0e1223;color:#0ef0ef
+  }
+  .muted{color:var(--muted);font-size:13px}
+  .pill{font-size:12px;padding:4px 8px;border:1px solid var(--line);border-radius:999px;background:var(--chip);color:var(--muted)}
+  .hr{height:1px;background:var(--line);margin:10px 0}
+  .list{display:flex;flex-direction:column;gap:8px}
+  .log{font-size:13px;color:var(--muted)}
+  .right{margin-left:auto}
+  .cols-2{display:grid;grid-template-columns:1fr;gap:10px}
+  @media(min-width:720px){.cols-2{grid-template-columns:1fr 1fr}}
+  .upgrade-card{background:#0f142a;border:1px solid #263058;border-radius:12px;padding:10px}
+  .upgrade-card h4{margin:0 0 6px 0;font-size:14px}
+  .up-meta{font-size:12px;color:var(--muted)}
+  .hint{font-size:12px;color:var(--muted)}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{border:1px solid #283052;padding:6px 8px;text-align:left}
+  th{background:#0e1223;color:var(--muted);font-weight:600}
+  /* Modal */
+  .modal{position:fixed;inset:0;background:#0008;display:none;align-items:center;justify-content:center;padding:16px;z-index:1000}
+  .modal.show{display:flex}
+  .modal .box{max-width:860px;width:100%;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;position:relative}
+  .modal h2{margin:0 0 10px 0;font-size:18px}
+  .toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:#0e1223;border:1px solid #283052;color:#fff;padding:10px 14px;border-radius:999px;display:none;z-index:1500}
+  .toast.show{display:block}
+
+  .app-logo{height:34px; width:auto; filter:drop-shadow(0 0 0 rgba(0,0,0,0.0));}
+  .verdictWrap{margin-top:8px}
+  .verdictTitle{margin:0 0 6px 0;font-size:16px}
+  .vbar{height:12px;background:#0e1223;border:1px solid #283052;border-radius:999px;overflow:hidden}
+  .vbar-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--bad),var(--mid),var(--ok)); transition:width .25s ease}
+  .vmeta{font-size:12px;color:var(--muted);margin-top:6px}
+  .badge-ok{background:var(--chip);color:var(--ok);border:1px solid #2f5d41}
+  .badge-mid{background:var(--chip);color:var(--mid);border:1px solid #7a6a28}
+  .badge-bad{background:var(--chip);color:var(--bad);border:1px solid #7a2a2a}
+
+
+/* --- Tabs bottom nav --- */
+.navbar-bottom{position:fixed;bottom:0;left:0;right:0;background:#0e1223;border-top:1px solid #283052;display:flex;gap:8px;justify-content:space-around;padding:10px 6px;z-index:1200}
+.navbar-bottom .nav-btn{flex:1;text-align:center;padding:10px;border:1px solid transparent;border-radius:12px;cursor:pointer}
+.navbar-bottom .nav-btn.active{border-color:#3b4b7a;background:#101935}
+.page-hidden{display:none!important}
+.fade{opacity:0;transition:opacity .15s ease}
+.fade.show{opacity:1}
+/* reserve space for navbar */
+.wrap{padding-bottom:64px}
+/* compact internal scroll lists */
+.scrollbox{overflow:auto;max-height:260px}
+
+
+/* --- Header layout fixed --- */
+.app-header{position:sticky;top:0;z-index:1300;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px;background:#0e1223;border-bottom:1px solid #283052;padding:8px 10px}
+.hdr-left{display:flex;gap:6px;justify-content:flex-start;align-items:center}
+.hdr-title{text-align:center;margin:0;font-size:18px;font-weight:700}
+.hdr-right{display:flex;justify-content:flex-end}
+.wrap{padding-top:58px; padding-bottom:64px}
+
+
+/* Ensure hidden sections collapse */
+#sec-quickstats.page-hidden{display:none!important}
+
+
+/* Keep upgrades only on Home page */
+.upgrade-card{ display:none !important; }
+body.page-home #sec-boutique .upgrade-card{ display:block !important; }
+
+
+/* Hide all upgrade cards everywhere (but keep layout and clicks) */
+.upgrade-card{ display:none !important; }
+
+
+/* Ensure empty right panel doesn't block clicks unintentionally */
+.section-wrap, .box { pointer-events:auto; }
+
+
+/* Show only Verdict clients on la page Accueil (cacher Améliorations & Objectifs) */
+#sec-boutique{ display:none !important; }  /* ex-ameliorations area */
+#sec-objectifs{} /* objectifs block (caché ici) */
+/* Tweak spacing of Verdict block when alone */
+#sec-verdict{ margin-top:0 !important; }
+
+
+/* Show Objectifs on Home */
+body.page-home #sec-objectifs{}
+#objectives .obj{border:1px solid #283052;background:#0f1630;border-radius:10px;padding:8px 10px;margin:6px 0}
+#objectives .obj .t{font-weight:600}
+#objectives .obj .p{font-size:12px;color:var(--muted)}
+#objectives .obj.done{opacity:0.7; filter:saturate(0.8)}
+
+
+/* spacing between Verdict and Objectifs cards on the right */
+#sec-verdict{ margin-bottom:12px; }
+
+
+/* ---- Visibility control ---- */
+#sec-verdict, #sec-objectifs{ display:none; }
+body.page-home #sec-verdict, body.page-home #sec-objectifs{ display:block !important; }
+/* Hide ex-ameliorations/objectifs blocks elsewhere if any */
+body.page-home #sec-boutique{ display:none !important; }
+
+</style>
+</head>
+<body>
+<header class="app-header">
+  <div class="hdr-left">
+    <button id="optionsBtn" class="ghost" title="Options & Sauvegarde">⚙️ Options</button>
+    <button id="helpBtn" class="ghost" title="Aide et formules">❓ Aide</button>
+  </div>
+  <h1 class="hdr-title">Startup Empire</h1>
+  <div class="hdr-right">
+    <button id="nextBtn" class="warn btn-lg">➡️ Semaine suivante</button>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="grid">
+    <!-- LEFT -->
+    <section class="card">
+      <div class="stats">
+        <div class="stat"><b>Argent (€)</b><div class="v" id="moneyV">0</div></div>
+        <div class="stat"><b>Stock</b><div class="v" id="stockV">0</div></div>
+        <div class="stat"><b>Réputation</b><div class="v" id="repV">50</div></div>
+        <div class="stat"><b>Dette</b><div class="v" id="debtV">0</div></div>
+        <div class="stat"><b>Tour</b><div class="v" id="turnV">1</div></div>
+      </div>
+
+      <div class="hr"></div>
+
+      <div class="row" style="margin-top:8px">
+        <div style="flex:1;min-width:160px">
+          <label for="price">Prix de vente / unité (€)</label>
+          <input id="price" type="number" min="0" step="0.1" value="10">
+        </div>
+        <div style="flex:1;min-width:160px">
+          <label for="quality">Qualité produit</label>
+          <select id="quality">
+            <option value="low">Basse (coûts faibles, réputation fragile)</option>
+            <option value="mid" selected>Moyenne (équilibrée)</option>
+            <option value="high">Haute (coûts +, améliore réputation)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="row" style="margin-top:8px">
+        <div style="flex:1;min-width:160px">
+          <label for="produceQty">Produire (qté)</label>
+          <input id="produceQty" type="number" min="1" step="1" value="10">
+          <div class="hint">Coût unitaire ≈ <span id="prodCostHint">5</span>€ (R&D réduit les coûts)</div>
+        </div>
+        <div style="flex:1;min-width:160px">
+          <label>&nbsp;</label>
+          <button id="produceBtn" class="secondary btn-lg">🧪 Produire</button>
+        </div>
+      </div>
+
+      <div class="hr"></div>
+
+      <div class="row">
+        <button id="sellBtn" class="btn-lg">🛒 Vendre (1× par semaine)</button>
+        <div>
+          <button id="nextBtn_old" class="warn btn-lg" style="display:none">➡️ Semaine suivante</button>
+          <div class="hint">Le récap s’ouvre, clique “OK” pour continuer</div>
+        </div>
+        <button id="loanBtn" class="ghost right">🏦 Prêt</button>
+      </div>
+    </section>
+
+    <!-- RIGHT: Upgrades + Journal + Finance + Objectives -->
+    <section class="card">
+      <div class="row" style="align-items:flex-start">
+        <div style="flex:1">
+          <div class="row" style="justify-content:space-between;align-items:center">
+            <h3 style="margin:0 0 6px 0;font-size:16px">🛠️ Améliorations</h3>
+            <span class="pill">Semaine <span id="turnMini">1</span></span>
+          </div>
+
+          <div class="cols-2" style="margin-top:8px">
+            <!-- Shop Level -->
+            <div class="upgrade-card">
+              <h4>Améliorer la boutique <span class="pill">Niv. <span id="shopLvl">1</span></span></h4>
+              <div class="up-meta" id="shopDesc">Capacité clients/jour de base : 8–14</div>
+              <div class="row" style="margin-top:8px">
+                <button id="upgradeShopBtn" class="secondary">⬆️ Améliorer (coût <span id="shopCost">200</span>€)</button>
+              </div>
+            </div>
+
+            <!-- Marketing -->
+            <div class="upgrade-card">
+              <h4>Marketing <span class="pill">Niv. <span id="mktLvl">0</span></span></h4>
+              <div class="up-meta">Attire plus de clients (+5% de demande/niv).</div>
+              <div class="row" style="margin-top:8px">
+                <button id="upgradeMktBtn" class="secondary">⬆️ Améliorer (coût <span id="mktCost">150</span>€)</button>
+              </div>
+            </div>
+
+            <!-- Service Clients -->
+            <div class="upgrade-card">
+              <h4>Service clients <span class="pill">Niv. <span id="svcLvl">0</span></span></h4>
+              <div class="up-meta">Améliore la conversion des clients (+0,03/niv).</div>
+              <div class="row" style="margin-top:8px">
+                <button id="upgradeSvcBtn" class="secondary">⬆️ Améliorer (coût <span id="svcCost">150</span>€)</button>
+              </div>
+            </div>
+
+            <!-- R&D -->
+            <div class="upgrade-card">
+              <h4>R&D <span class="pill">Niv. <span id="rndLvl">0</span></span></h4>
+              <div class="up-meta">Réduit le coût de production (−4%/niv).</div>
+              <div class="row" style="margin-top:8px">
+                <button id="upgradeRndBtn" class="secondary">⬆️ Améliorer (coût <span id="rndCost">180</span>€)</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="hr"></div>
+
+          <h3 style="margin:0 0 6px 0;font-size:16px">🎯 Objectifs</h3>
+          <div id="objectives"></div>
+
+          <div class="hr"></div>
+          <h3 class="verdictTitle">🗣️ Verdict clients</h3>
+          <div class="verdictWrap">
+            <div class="vbar"><div class="vbar-fill" id="vbarFill" style="width:0%"></div></div>
+            <div class="vmeta">Verdict: <span class="pill" id="vVerdict">—</span> • Prix: <span id="vPrice">—</span> • Qualité: <span id="vQual">—</span></div>
+          </div>
+
+          <div class="hr"></div>
+    
+
+          <h3 style="margin:0 0 6px 0;font-size:16px">📈 Finances (récap par semaine)</h3>
+          <div id="financeSummary" class="muted"></div>
+          <div style="overflow:auto;max-height:260px;margin-top:6px;">
+            <table>
+              <thead>
+                <tr><th>Semaine</th><th>Revenus</th><th>Coût prod</th><th>Upgrades</th><th>Charges</th><th>Intérêts</th><th>Net</th></tr>
+              </thead>
+              <tbody id="financeTable"></tbody>
+            </table>
+          </div>
+
+          <div class="hr"></div>
+
+          
+
+          <h3 style="margin:0 0 6px 0;font-size:16px">📰 Journal de la semaine</h3>
+          <div id="log" class="list"></div>
+          <div class="hr"></div>
+          <h3>⚔️ Concurrence</h3>
+          <div id="competitorsNote" class="muted">Trois concurrents IA évoluent chaque tour selon la difficulté.</div>
+          <div style="overflow:auto;max-height:220px;margin-top:6px;">
+            <table id="competitorsTbl">
+              <thead><tr><th>Nom</th><th>Part</th><th>Réputation</th><th>Prix</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+    
+
+          <div class="hr"></div>
+
+          
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+
+<!-- START MODAL (difficulty) -->
+<div class="modal show" id="startModal">
+  <div class="box">
+    <h2>🎮 Nouvelle partie</h2>
+    <div class="muted">Choisis une difficulté (ou clique directement “Tour suivant” pour Normal).</div>
+    <div class="hr"></div>
+    <div class="row" style="gap:8px;flex-wrap:wrap">
+      <button data-diff="easy" class="secondary">Débutant</button>
+      <button data-diff="normal" class="secondary">Normal</button>
+      <button data-diff="hard" class="secondary">Expert</button>
+    </div>
+    <div class="hr"></div>
+    <div class="muted">Débutant: +800€ cash, charges faibles, seuil faillite -800€<br>Normal: +500€, charges moyennes, seuil -500€<br>Expert: +350€, charges hautes, seuil -300€</div>
+  </div>
+</div>
+
+<!-- TURN REPORT MODAL -->
+<div class="modal" id="reportModal">
+  <div class="box">
+    <h2>🧾 Récap du tour <span id="reportTurn"></span></h2>
+    <div id="reportBody" class="muted"></div>
+    <div class="hr"></div>
+    <div class="row">
+      <button id="closeReport" class="secondary right" type="button" autofocus>OK (Continuer)</button>
+    </div>
+  </div>
+</div>
+
+<!-- UPGRADE MODAL -->
+<div class="modal" id="upModal">
+  <div class="box">
+    <h2>✅ Amélioration effectuée</h2>
+    <div id="upSummary" class="muted"></div>
+    <div class="hr"></div>
+    <div class="row">
+      <button id="closeUp" class="secondary right" type="button">OK</button>
+    </div>
+  </div>
+</div>
+
+<!-- HELP MODAL -->
+<div class="modal" id="helpModal">
+  <div class="box">
+    <h2>❓ Aide & Formules</h2>
+    <div id="helpBody" class="muted" style="max-height:60vh;overflow:auto">
+      <b>Règles clés</b><br>
+      • 1 vente <i>max</i> par tour. • La réputation (0–100) influence le nombre de clients.<br><br>
+      <b>Clients par jour</b> ≈ (6 + 4×niv.boutique) ± aléa + bonus réputation + % marketing.<br>
+      <b>Conversion</b> ≈ 0,45 + bonus qualité + bonus Service clients + effets d’événements − pénalité de prix.<br>
+      <b>Prix de référence</b> : basse≈6€, moyenne≈10€, haute≈15€ (le ratio prix/référence change la conversion).<br>
+      <b>Coût de prod</b> : basse 5€, moyenne 7,5€, haute 11€ (R&D −4%/niv).<br>
+      <b>Frais fixes</b> : base selon difficulté + {lvlBoutique−1}×coût/niv. Intérêts si dette >0.<br>
+      <b>Faillite</b> si cash < seuil difficulté. <b>Game Over</b> aussi si réputation = 0.<br><br>
+      <b>Upgrades</b> : Marketing (+5% demande/niv), Service (+0,03 conversion/niv), R&D (−4% coût/niv).<br>
+      <b>Verdict client</b> : synthèse “satisfaits/mitigés/mécontents” basée sur prix & qualité.<br>
+      <b>Objectifs</b> : 3 actifs, donnent €, réputation; remplacés automatiquement une fois atteints.<br>
+      <b>Événements</b> : influencent la demande, conversion, réputation, coûts, etc.
+    </div>
+    <div class="row">
+      <button id="closeHelp" class="secondary right" type="button">Fermer</button>
+    </div>
+  </div>
+</div>
+
+<!-- OPTIONS MODAL -->
+<div class="modal" id="optModal">
+  <div class="box">
+    <h2>⚙️ Options & Sauvegarde <span class="pill" id="diffBadge">Normal</span> <span class="pill" id="verBadge"></span></h2>
+
+    <div class="row" style="gap:8px;flex-wrap:wrap">
+      <label for="diffSel"><b>Difficulté :</b></label>
+      <select id="diffSel" style="max-width:220px">
+        <option value="easy">Débutant</option>
+        <option value="normal">Normal</option>
+        <option value="hard">Expert</option>
+      </select>
+      <button id="applyDiff" class="secondary" type="button">Appliquer</button>
+      <span class="muted">⚠️ N’affecte pas cash/stock actuels. Modifie <i>charges, seuil de faillite, taux d’intérêt</i> pour la suite.</span>
+    </div>
+
+    <div class="hr"></div>
+    <div class="row" style="gap:8px;flex-wrap:wrap">
+      <label for="logCleanSel"><b>Nettoyage du journal :</b></label>
+      <select id="logCleanSel" style="max-width:220px">
+        <option value="never">Jamais</option>
+        <option value="1">Chaque tour</option>
+        <option value="5">Tous les 5 tours</option>
+        <option value="10">Tous les 10 tours</option>
+      </select>
+      <span class="muted" id="logCleanHint">(actuel : Jamais)</span>
+      <button id="clearLogNow" class="ghost" type="button">🧹 Vider maintenant</button>
+    </div>
+
+    <div class="hr"></div>
+    <div class="row" style="gap:8px;flex-wrap:wrap">
+      <button id="saveBtn" class="secondary" type="button">💾 Sauvegarder</button>
+      <button id="loadBtn" class="secondary" type="button">📂 Charger</button>
+      <button id="optReset" class="danger" type="button">🔁 Reset</button>
+    </div>
+    <div class="muted">Reset affiche de nouveau l’écran de démarrage pour re-choisir la difficulté.</div>
+
+    <div class="hr"></div>
+    <div class="row">
+      <button id="closeOpt" class="secondary right" type="button">Fermer</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- MONTH SUMMARY MODAL -->
+<div class="modal" id="monthModal">
+  <div class="box">
+    <h2>🗓️ Bilan du mois <span id="monthNum"></span></h2>
+    <div id="monthBody" class="muted"></div>
+    <div class="row"><button id="closeMonth" class="secondary right" type="button">Fermer</button></div>
+  </div>
+</div>
+
+<!-- LOAN MODAL -->
+<div class="modal" id="loanModal">
+  <div class="box">
+    <h2>🏦 Prêt bancaire</h2>
+    <div class="muted">Taux d’intérêt par tour: <b><span id="loanRate">3</span>%</b></div>
+    <div class="row" style="margin-top:8px">
+      <div style="flex:1;min-width:160px">
+        <label>Emprunter (€)</label>
+        <input id="loanAmount" type="number" min="0" step="50" value="200">
+      </div>
+      <div style="flex:1;min-width:160px">
+        <label>&nbsp;</label>
+        <button id="takeLoan" class="secondary">+ Prendre le prêt</button>
+      </div>
+    </div>
+    <div class="row" style="margin-top:8px">
+      <div style="flex:1;min-width:160px">
+        <label>Rembourser (€)</label>
+        <input id="repayAmount" type="number" min="0" step="50" value="100">
+      </div>
+      <div style="flex:1;min-width:160px">
+        <label>&nbsp;</label>
+        <button id="repayLoan" class="secondary">− Rembourser</button>
+      </div>
+    </div>
+    <div class="hr"></div>
+    <div class="row">
+      <button id="closeLoan" class="secondary right" type="button">Fermer</button>
+    </div>
+  </div>
+</div>
+
+<!-- GAME OVER MODAL -->
+<div class="modal" id="goModal">
+  <div class="box">
+    <h2>💥 Game Over</h2>
+    <div id="goSummary" class="muted"></div>
+    <div class="hr"></div>
+    <div class="row">
+      <button id="resetBtn" class="danger right" type="button">🔁 Recommencer</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast">Amélioration indisponible (fonds insuffisants).</div>
+
+<script>
+(function(){
+  
+  // VERSION
+  const VERSION = 'v0.5.0';
+
+  
+  // --- COMPETITORS / CATEGORY ---
+  const CATEGORY_NAMES = { tech:'Tech', food:'Fast-Food', auto:'Automobile' };
+  const NAME_POOLS = {
+    tech: ['Macrohard','Pear','Googol','Orakle','Netflox','Nvidya','MetaVerse&co'],
+    food: ['McDoof','Bugger King','Subbug','Tacobellissimo','KFCeuh','PizzaHutte'],
+    auto: ['Toybota','FolksVagon','Renot','Peugeotte','BimW','Mersedan']
+  };
+  function pickNames(cat, n=3){
+    const pool = [...NAME_POOLS[cat]];
+    const out=[];
+    while(out.length<n && pool.length>0){
+      const i=Math.floor(Math.random()*pool.length);
+      out.push(pool.splice(i,1)[0]);
+    }
+    return out;
+  }
+  function makeCompetitor(name){
+    return { name, share: +(5+Math.random()*10).toFixed(1), rep: Math.floor(40+Math.random()*30), price: +(8+Math.random()*8).toFixed(2) };
+  }
+
+  // PRESETS
+  // --- Paging logic ---
+  const PAGES = { home:['sec-quickstats','sec-boutique','sec-objectifs','sec-verdict'], stats:['sec-finances','sec-loan','sec-journal','sec-monthly'], concur:['sec-concurrence'] };
+  // Monthly table container for stats
+  const monthlyBox = document.createElement('div');
+  monthlyBox.id='sec-monthly';
+  monthlyBox.innerHTML = `
+    <h3 style="margin:0 0 6px 0;font-size:16px">🗓️ Bilans mensuels (année courante)</h3>
+    <div class="scrollbox" style="margin-top:6px">
+      <table><thead><tr><th>Mois</th><th>Revenus</th><th>Coûts</th><th>Intérêts</th><th>Net</th></tr></thead>
+      <tbody id="monthTable"></tbody></table>
+    </div>
+    <div class="hr"></div>
+  `;
+  if(document.getElementById('sec-finances')){
+    document.getElementById('sec-finances').parentNode.insertBefore(monthlyBox, document.getElementById('sec-finances').nextSibling);
+  }
+
+  function showPage(key){
+    // page class
+    document.body.classList.remove('page-home','page-stats','page-concur');
+    document.body.classList.add('page-'+key);
+    // Hide all sec- wrappers first
+    document.querySelectorAll('.section-wrap, #sec-loan, #sec-monthly, #sec-quickstats').forEach(el=> el.classList.add('page-hidden'));
+    // Show selected
+    (PAGES[key]||[]).forEach(id=>{ const el=document.getElementById(id); if(el){ el.classList.remove('page-hidden'); el.classList.add('fade'); setTimeout(()=>el.classList.add('show'), 0); } });
+    // Navbar active state
+    document.querySelectorAll('.navbar-bottom .nav-btn').forEach(b=> b.classList.remove('active'));
+    const btn=[...document.querySelectorAll('.navbar-bottom .nav-btn')].find(x=>x.dataset.page===key); if(btn) btn.classList.add('active');
+  }
+  // Init page
+  showPage('home');
+  // Hook buttons
+  document.querySelectorAll('.navbar-bottom .nav-btn').forEach(b=> b.addEventListener('click', ()=> showPage(b.dataset.page)));
+
+  // Hook loan button
+  document.getElementById('openLoan')?.addEventListener('click', ()=> loanModal.classList.add('show'));
+
+  const PRESETS = {
+    easy:   { money:800, stock:20, rep:55, chargesBase:15, chargePerLvl:7, bankruptcy:-800, loanRate:0.02, label:'Débutant' },
+    normal: { money:500, stock:20, rep:50, chargesBase:20, chargePerLvl:10, bankruptcy:-500, loanRate:0.03, label:'Normal' },
+    hard:   { money:350, stock:20, rep:45, chargesBase:28, chargePerLvl:14, bankruptcy:-300, loanRate:0.04, label:'Expert' }
+  };
+
+  // STATE
+  const S = {
+    money: 0, stock: 0, price: 10, quality: 'mid', reputation: 50,
+    debt: 0, shopLevel: 1, turn: 1, soldThisTurn: false, lowQStreak: 0,
+    upgrades: { mkt:0, svc:0, rnd:0 , category:'tech', competitors:[]},
+    settings: { logCleanup: 'never' },
+    temp: { demandFactor:0, convAdd:0, repDelta:0, moneyDelta:0, notes:[] },
+    lastReport: null,
+    fin: { rev:0, prod:0, upgrades:0, charges:0, interest:0 },
+    finRows: [],
+    diff: 'normal', preset: PRESETS.normal,
+    objectives: []
+  };
+
+  // DOM
+  const moneyV=document.getElementById('moneyV'), stockV=document.getElementById('stockV'), repV=document.getElementById('repV'), debtV=document.getElementById('debtV');
+  const turnV=document.getElementById('turnV'), turnMini=document.getElementById('turnMini');
+  const priceI=document.getElementById('price'), qualityS=document.getElementById('quality'), prodQtyI=document.getElementById('produceQty'), prodCostHint=document.getElementById('prodCostHint');
+  const produceBtn=document.getElementById('produceBtn'), sellBtn=document.getElementById('sellBtn'), nextBtn=document.getElementById('nextBtn');
+  const logDiv=document.getElementById('log'), financeTable=document.getElementById('financeTable'), financeSummary=document.getElementById('financeSummary');
+  const optionsBtn=document.getElementById('optionsBtn'), optModal=document.getElementById('optModal'), closeOpt=document.getElementById('closeOpt');
+  const logCleanSel=document.getElementById('logCleanSel'), logCleanHint=document.getElementById('logCleanHint'), clearLogNow=document.getElementById('clearLogNow');
+  const saveBtn=document.getElementById('saveBtn'), loadBtn=document.getElementById('loadBtn'), optReset=document.getElementById('optReset');
+  const diffBadge=document.getElementById('diffBadge'), diffSel=document.getElementById('diffSel'), applyDiff=document.getElementById('applyDiff');
+  const loanBtn=document.getElementById('loanBtn'), loanModal=document.getElementById('loanModal'), loanRateSpan=document.getElementById('loanRate'), loanAmountI=document.getElementById('loanAmount'), repayAmountI=document.getElementById('repayAmount');
+  const takeLoanBtn=document.getElementById('takeLoan'), repayLoanBtn=document.getElementById('repayLoan'), closeLoan=document.getElementById('closeLoan');
+  const startModal=document.getElementById('startModal');
+  const reportModal=document.getElementById('reportModal'), reportTurn=document.getElementById('reportTurn'), reportBody=document.getElementById('reportBody'), closeReport=document.getElementById('closeReport');
+  const upModal=document.getElementById('upModal'), upSummary=document.getElementById('upSummary'), closeUp=document.getElementById('closeUp');
+  const helpModal=document.getElementById('helpModal'), closeHelp=document.getElementById('closeHelp');
+  const goModal=document.getElementById('goModal'), goSummary=document.getElementById('goSummary'), resetBtn=document.getElementById('resetBtn');
+  const toast=document.getElementById('toast');
+  const monthModal=document.getElementById('monthModal');
+  const monthNum=document.getElementById('monthNum');
+  const monthBody=document.getElementById('monthBody');
+  const closeMonth=document.getElementById('closeMonth');
+  const helpBtn=document.getElementById('helpBtn');
+  const vbarFill=document.getElementById('vbarFill');
+  const vVerdict=document.getElementById('vVerdict');
+  const vPrice=document.getElementById('vPrice');
+  const vQual=document.getElementById('vQual');
+
+  
+  // VERDICT BAR
+  function setVerdictUI(verdictLabel, verdictClass, priceLbl, qualLbl, satisfaction){
+    if(!vbarFill) return;
+    const score = Math.max(0, Math.min(100, Math.round(50 + satisfaction*25)));
+    vbarFill.style.width = score + '%';
+    vVerdict.textContent = verdictLabel;
+    vVerdict.className = 'pill ' + (verdictClass==='ok' ? 'badge-ok' : verdictClass==='mid' ? 'badge-mid' : 'badge-bad');
+    vPrice.textContent = priceLbl;
+    vQual.textContent = qualLbl;
+  }
+
+  
+  function evolveCompetitors(){
+    const diff = S.diff || 'normal';
+    const mult = diff==='easy'? 0.4 : (diff==='hard'? 1.2 : 0.8);
+    // Normalize shares so total competition stays reasonable (20% à 60%)
+    let baseDrift = (Math.random()*2 - 1) * 0.6 * mult; // [-0.6,0.6]*mult
+    for(const c of S.competitors){
+      const drift = baseDrift + (Math.random()*2 - 1) * 0.4 * mult;
+      c.share = Math.max(0, Math.min(60, +(c.share + drift).toFixed(1)));
+      c.rep = Math.max(0, Math.min(100, c.rep + Math.floor((Math.random()*3-1)*mult)));
+      c.price = Math.max(3, +(c.price + (Math.random()*2-1)*0.3*mult).toFixed(2));
+    }
+  }
+  function totalCompetitorShare(){
+    return (S.competitors||[]).reduce((a,c)=>a+(+c.share||0),0);
+  }
+  function updateCompetitorsUI(){
+    const tbody = document.querySelector('#competitorsTbl tbody'); if(!tbody) return;
+    tbody.innerHTML='';
+    (S.competitors||[]).forEach(c=>{
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td>${c.name}</td><td>${c.share.toFixed ? c.share.toFixed(1) : c.share}%</td><td>${c.rep}</td><td>${fmt(c.price)}€</td>`;
+      tbody.appendChild(tr);
+    });
+    const note = document.getElementById('competitorsNote'); if(note) note.textContent = `Impact: ${Math.min(80, Math.max(0, Math.round(totalCompetitorShare())))}% du marché occupé par la concurrence.`;
+  }
+
+  
+  // --- Section wrappers (create containers so we can paginate) ---
+  function wrapSectionByTitle(titleText, id){
+    const hs=[...document.querySelectorAll('h3')];
+    const h=hs.find(x=> x.textContent.trim().includes(titleText));
+    if(!h) return null;
+    // Find end = next hr divider or end of column
+    let end = h.nextElementSibling;
+    const wrapper = document.createElement('div'); wrapper.id=id; wrapper.className='section-wrap';
+    h.parentNode.insertBefore(wrapper, h);
+    // move h and following siblings until a <div class="hr"></div> encountered (exclusive), or until next h3 that is top-level
+    let node=h;
+    while(node){
+      const next=node.nextElementSibling;
+      wrapper.appendChild(node);
+      if(node.tagName==='DIV' && node.classList.contains('hr')) break;
+      if(next && next.tagName==='H3') { /* keep going, because many blocks have H3 for sub-sections */ }
+      node = next;
+      // Stop if we reached end marker (a following section wrapper or competitors note wrap)
+      if(!node) break;
+      if(node.tagName==='H3' && node.textContent.trim().includes('📈 Finances')) { /* don't swallow finances into other wrappers */ }
+    }
+    return wrapper;
+  }
+  function ensureWrapperAround(h3Text, id){
+    let el = document.getElementById(id);
+    if(el) return el;
+    return wrapSectionByTitle(h3Text, id);
+  }
+  // Create needed wrappers
+  const wBoutique = ensureWrapperAround('🏬 Boutique', 'sec-boutique');
+  const wObjectifs = ensureWrapperAround('🎯 Objectifs', 'sec-objectifs');
+  const wVerdict = ensureWrapperAround('🗣️ Verdict clients', 'sec-verdict');
+  const wFin = ensureWrapperAround('📈 Finances', 'sec-finances');
+  const wJournal = ensureWrapperAround('📰 Journal', 'sec-journal');
+  const wConcur = ensureWrapperAround('⚔️ Concurrence', 'sec-concurrence');
+
+  // Create a small "Prêt" card in stats page (reads S.debt, opens loan modal)
+  const loanCard = document.createElement('div');
+  loanCard.id='sec-loan';
+  loanCard.innerHTML = `
+    <h3 style="margin:0 0 6px 0;font-size:16px">🏦 Prêt & Dette</h3>
+    <div class="muted">Dette actuelle : <b><span id="debtStat">0</span>€</b> • Taux: <span id="loanRateSpan">0</span>%/semaine</div>
+    <div class="row" style="margin-top:8px;gap:8px">
+      <button id="openLoan" class="secondary" type="button">Gérer le prêt</button>
+    </div>
+    <div class="hr"></div>
+  `;
+  // insert after finances section if present
+  if(wFin && wFin.parentNode){ wFin.parentNode.insertBefore(loanCard, wFin.nextSibling); }
+
+  
+  // Place 'Objectifs' sous 'Verdict clients' sur Accueil
+  function placeObjectivesUnderVerdict(){
+    const v = document.getElementById('sec-verdict');
+    const o = document.getElementById('sec-objectifs');
+    if(v && o && v.nextElementSibling !== o){
+      v.parentNode.insertBefore(o, v.nextSibling);
+    }
+  }
+  // window.addEventListener('load', placeObjectivesUnderVerdict);
+
+  // ---- Objectives system (3 per year; harder as you complete more) ----
+  function yearFromTurn(){ return Math.floor((S.turn-1)/48)+1; } // 48 semaines = 12 mois
+  function ensureObjectives(){
+    if(!S.obj){ S.obj = { year: 0, items: [], completedTotal: 0 }; }
+    const y = yearFromTurn();
+    if(S.obj.year !== y || !Array.isArray(S.obj.items) || S.obj.items.length===0){
+      S.obj.year = y;
+      S.obj.items = generateObjectives(3, S.obj.completedTotal||0);
+    }
+  }
+  function generateObjectives(n, completedTotal){
+    const tier = Math.min(10, completedTotal); // échelle de difficulté
+    const out=[];
+    const kinds = ['cash','rep','revenue'];
+    for(let i=0;i<n;i++){
+      const kind = kinds[i % kinds.length]; // varié et déterministe
+      if(kind==='cash'){
+        const target = Math.round(800 * (1+0.35*tier)); // argent en coffre
+        out.push({id:'cash'+i, kind, target, done:false, desc:`Atteindre ${fmt(target)}€ de trésorerie.`});
+      }else if(kind==='rep'){
+        const target = Math.min(95, 60 + 5*tier);
+        out.push({id:'rep'+i, kind, target, done:false, desc:`Atteindre ${target} de réputation.`});
+      }else if(kind==='revenue'){
+        const target = Math.round(220 * (1+0.30*tier));
+        out.push({id:'rev'+i, kind, target, done:false, desc:`Faire au moins ${fmt(target)}€ de CA en une semaine.`});
+      }
+    }
+    return out;
+  }
+  function evalObjectives(){
+    ensureObjectives();
+    const lr = S.lastReport || { revenue:0, unitsSold:0 };
+    for(const o of S.obj.items){
+      if(o.done) continue;
+      if(o.kind==='cash' && S.cash >= o.target) o.done = true;
+      if(o.kind==='rep' && S.reputation >= o.target) o.done = true;
+      if(o.kind==='revenue' && (lr.revenue||0) >= o.target) o.done = true;
+      if(o.done){ S.obj.completedTotal = (S.obj.completedTotal||0)+1; }
+    }
+  }
+  function renderObjectives(){
+    ensureObjectives();
+    const root = document.getElementById('objectives'); if(!root) return;
+    root.innerHTML='';
+    S.obj.items.forEach(o=>{
+      const div = document.createElement('div'); div.className = 'obj'+(o.done?' done':'');
+      const tick = o.done ? '✅' : '⏳';
+      let progress = '';
+      if(o.kind==='cash') progress = `Actuel: ${fmt(S.cash)}€`;
+      if(o.kind==='rep') progress = `Actuel: ${S.reputation}`;
+      if(o.kind==='revenue') progress = `Dernière semaine: ${fmt((S.lastReport?.revenue)||0)}€`;
+      div.innerHTML = `<div class="t">${tick} ${o.desc}</div><div class="p">${progress}</div>`;
+      root.appendChild(div);
+    });
+  }
+
+  // HELPERS
+  const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
+  const fmt = n => (Math.round(n*100)/100).toLocaleString('fr-FR');
+  const showToast = msg=>{ toast.textContent=msg; toast.classList.add('show'); setTimeout(()=>toast.classList.remove('show'),1800); };
+  const labelForCleanup = v=> v==='never' ? 'Jamais' : (v==='1' ? 'Chaque tour' : (v==='5' ? 'Tous les 5 tours' : 'Tous les 10 tours'));
+
+  function updateDiffUI(){
+    diffBadge.textContent = PRESETS[S.diff].label;
+    diffSel.value = S.diff;
+    loanRateSpan.textContent = Math.round(S.preset.loanRate*100);
+    const ver = document.getElementById('verBadge'); if(ver) ver.textContent = VERSION;
+  }
+
+  function closeOnBackdrop(modal){ modal.addEventListener('click', e=>{ if(e.target===modal){ modal.classList.remove('show'); } }); }
+  [reportModal, upModal, helpModal, optModal, goModal, loanModal].forEach(closeOnBackdrop);
+  window.addEventListener('keydown', (e)=>{
+    if(e.key==='Escape'){
+      [reportModal, upModal, helpModal, optModal, goModal, loanModal].some(m=>{ if(m.classList.contains('show')){ m.classList.remove('show'); return true; } });
+    }
+    if(e.key==='Enter' && reportModal.classList.contains('show')){ reportModal.classList.remove('show'); }
+  });
+
+  function qualityParams(q){
+    if(q==='low')  return { prodCost:5,   qBonus:+0.0, basePrice:6, qLabel:'basse' };
+    if(q==='mid')  return { prodCost:7.5, qBonus:+0.5, basePrice:10, qLabel:'moyenne' };
+    return            { prodCost:11,  qBonus:+1.1, basePrice:15, qLabel:'haute' };
+  }
+  function upgradeShopCost(lvl){ return 200 * Math.pow(1.45, (lvl-1)); }
+  function upgradeLinearCost(base, lvl){ return base * Math.pow(1.5, lvl); }
+  function baseCustomers(lvl){ return 6 + 4*lvl; }
+
+  function calcCustomersToday(){
+    const base = baseCustomers(S.shopLevel);
+    const repBoost = Math.floor(S.reputation/5);
+    const noise = Math.floor((Math.random()*4)-2);
+    let c = base + repBoost + noise;
+    c = c * (1 + 0.05 * S.upgrades.mkt);
+    c = Math.round(c * (1 + S.temp.demandFactor));
+    return clamp(c, 0, 999);
+  }
+
+  function pricePenalty(price, ref){
+    if(ref <= 0) return 0;
+    const ratio = (price - ref) / ref;
+    if (ratio <= 0) return 0.1 * ratio;
+    return -Math.min(1.2, ratio * 2);
+  }
+  function pricePerception(price, ref){
+    const ratio = price / ref;
+    if(ratio < 0.85) return {label:'abordable', cls:'ok'};
+    if(ratio <= 1.15) return {label:'correct', cls:'ok'};
+    if(ratio <= 1.4) return {label:'cher', cls:'mid'};
+    return {label:'trop cher', cls:'bad'};
+  }
+  function qualityPerception(qLabel){
+    if(qLabel==='basse') return {label:'basse', cls:'bad'};
+    if(qLabel==='moyenne') return {label:'moyenne', cls:'mid'};
+    return {label:'haute', cls:'ok'};
+  }
+  function overallVerdict(pCls, qCls){
+    if(pCls==='bad' || qCls==='bad') return {label:'mécontents', cls:'bad'};
+    if(pCls==='mid' || qCls==='mid') return {label:'mitigés', cls:'mid'};
+    return {label:'satisfaits', cls:'ok'};
+  }
+
+  // OBJECTIVES
+  const OBJ_POOL = [
+    ()=>({id:'rev120', text:'Faire 120€ de revenus en un tour', check:(ctx)=>ctx.rev>=120, reward:{money:80, rep:2}}),
+    ()=>({id:'sell30', text:'Vendre 30 unités au total', check:(ctx)=>ctx.totalSold>=30, reward:{money:70, rep:1}}),
+    ()=>({id:'rep60', text:'Atteindre 60 de réputation', check:(ctx)=>ctx.rep>=60, reward:{money:60, rep:2}}),
+    ()=>({id:'lvl3', text:'Monter la boutique au niveau 3', check:(ctx)=>ctx.shopLevel>=3, reward:{money:120, rep:1}}),
+    ()=>({id:'cash800', text:'Atteindre 800€ de trésorerie', check:(ctx)=>ctx.money>=800, reward:{money:0, rep:3}}),
+    ()=>({id:'prod50', text:'Produire 50 unités au total', check:(ctx)=>ctx.totalProduced>=50, reward:{money:60, rep:1}}),
+  ];
+  let totalSold=0, totalProduced=0;
+  function refillObjectives(){ while(S.objectives.length<3){ const o=OBJ_POOL[Math.floor(Math.random()*OBJ_POOL.length)](); if(!S.objectives.some(x=>x.id===o.id)) S.objectives.push(o);} renderObjectives(); }
+  function renderObjectives(){
+    const cont=document.getElementById('objectives'); cont.innerHTML='';
+    S.objectives.forEach(o=>{ const d=document.createElement('div'); d.className='upgrade-card'; d.innerHTML=`<h4>• ${o.text}</h4><div class="muted">Récompense: ${o.reward.money}€ & ${o.reward.rep} réputation</div>`; cont.appendChild(d); });
+  }
+  function checkObjectives(){
+    const ctx={rev:S.fin.rev,totalSold,rep:S.reputation,shopLevel:S.shopLevel,money:S.money,totalProduced};
+    const done=S.objectives.filter(o=>o.check(ctx));
+    if(done.length){ done.forEach(o=>{ S.money+=o.reward.money; S.reputation=clamp(S.reputation+o.reward.rep,0,100); pushLog(`🎉 Objectif atteint: "${o.text}" (+${o.reward.money}€, +${o.reward.rep} rep)`); }); S.objectives=S.objectives.filter(o=>!done.includes(o)); refillObjectives(); }
+  }
+
+  // FINANCE
+  function resetFinAcc(){ S.fin={rev:0,prod:0,upgrades:0,charges:0,interest:0}; }
+  function pushFinRow(){
+    const net = S.fin.rev - (S.fin.prod + S.fin.upgrades + S.fin.charges + S.fin.interest);
+    S.finRows.unshift({turn:S.turn, ...S.fin, net});
+    refreshFinanceTable(); resetFinAcc();
+  }
+  function refreshFinanceTable(){
+    financeTable.innerHTML='';
+    let totRev=0, totProd=0, totUp=0, totCh=0, totInt=0, totNet=0;
+    S.finRows.slice(0,24).forEach(r=>{
+      const tr=document.createElement('tr');
+      tr.innerHTML=`<td>${r.turn}</td><td>${fmt(r.rev)}</td><td>${fmt(r.prod)}</td><td>${fmt(r.upgrades)}</td><td>${fmt(r.charges)}</td><td>${fmt(r.interest)}</td><td>${fmt(r.net)}</td>`;
+      financeTable.appendChild(tr);
+    });
+    S.finRows.forEach(r=>{ totRev+=r.rev; totProd+=r.prod; totUp+=r.upgrades; totCh+=r.charges; totInt+=r.interest; totNet+=r.net; });
+    financeSummary.textContent=`Cumul: Revenus ${fmt(totRev)}€ • Coût prod ${fmt(totProd)}€ • Upgrades ${fmt(totUp)}€ • Charges ${fmt(totCh)}€ • Intérêts ${fmt(totInt)}€ • Net ${fmt(totNet)}€`;
+  }
+
+  
+  // --- Weeks & Months ---
+  function currentMonth(){ return Math.floor((S.turn-1)/4)+1; }
+  function isEndOfMonth(){ return (S.turn % 4)===0; } // before increment
+  function monthlySumFor(month){
+    // sum last 4 weeks rows with turn in [(month-1)*4+1 .. month*4]
+    const start = (month-1)*4 + 1, end = month*4;
+    const rows = (S.finRows||[]).filter(r=> r.turn>=start && r.turn<=end);
+    let rev=0, prod=0, up=0, ch=0, it=0, net=0;
+    rows.forEach(r=>{ rev+=r.rev; prod+=r.prod; up+=r.upgrades; ch+=r.charges; it+=r.interest; net+=r.net; });
+    return {month, rev, costs: (prod+up+ch), interest: it, net};
+  }
+  function refreshMonthTable(){
+    const tb = document.getElementById('monthTable'); if(!tb) return;
+    tb.innerHTML='';
+    for(let m=1;m<=12;m++){
+      const s = monthlySumFor(m);
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td>${m}</td><td>${fmt(s.rev)}</td><td>${fmt(s.costs)}</td><td>${fmt(s.interest)}</td><td>${fmt(s.net)}</td>`;
+      tb.appendChild(tr);
+    }
+  }
+
+  
+  // Ensure quick stats wrapper exists and is assigned to Home only
+  (function(){
+    const mv = document.getElementById('moneyV');
+    if(mv){
+      const sec = mv.closest('section');
+      if(sec && !sec.id){ sec.id = 'sec-quickstats'; }
+    }
+  })();
+
+  
+  // --- Safety: ensure Boutique wrapper exists and is targeted only by Home ---
+  function ensureBoutiqueWrapper(){
+    if(document.getElementById('sec-boutique')) return;
+    const h3s=[...document.querySelectorAll('h3')];
+    const h=h3s.find(x=> x.textContent && (x.textContent.includes('🏬 Boutique') || x.textContent.includes('🛠️ Améliorations')));
+    if(!h) return;
+    const w=document.createElement('div'); w.id='sec-boutique'; w.className='section-wrap';
+    h.parentNode.insertBefore(w, h);
+    // move nodes until next hr divider
+    let node=h;
+    while(node){
+      const next=node.nextElementSibling;
+      w.appendChild(node);
+      if(node.tagName==='DIV' && node.classList.contains('hr')) break;
+      node = next;
+    }
+  }
+  function hideAllSections(){
+    document.querySelectorAll('.section-wrap, #sec-quickstats, #sec-loan, #sec-monthly').forEach(el=>{
+      el.classList.add('page-hidden'); el.classList.remove('show');
+    });
+  }
+  function showOnly(ids){
+    ids.forEach(id=>{ const el=document.getElementById(id); if(el){ el.classList.remove('page-hidden'); el.classList.add('fade'); setTimeout(()=>el.classList.add('show'), 0); } });
+  }
+  // Replace default showPage with stricter version
+  const _origShowPage = typeof showPage==='function' ? showPage : null;
+  function showPage(key){
+    ensureBoutiqueWrapper();
+    hideAllSections();
+    const list = (PAGES[key]||[]);
+    showOnly(list);
+    // navbar state
+    document.querySelectorAll('.navbar-bottom .nav-btn').forEach(b=> b.classList.toggle('active', b.dataset.page===key));
+  }
+
+  
+  // Place 'Verdict clients' en premier dans la colonne de droite
+  function placeVerdictOnTop(){
+    const v = document.getElementById('sec-verdict');
+    if(!v) return;
+    const parent = v.parentElement;
+    if(parent && parent.firstElementChild !== v){
+      parent.insertBefore(v, parent.firstElementChild);
+    }
+  }
+  window.addEventListener('load', placeVerdictOnTop);
+
+  
+  // --- Split 'Verdict clients' and 'Objectifs' into two separate cards on Home ---
+  function splitVerdictAndObjectives(){
+    try{
+      const verdictTitle = document.querySelector('h3.verdictTitle');
+      const objectivesTitle = [...document.querySelectorAll('h3')].find(h=> h.textContent.trim().startsWith('🎯 Objectifs'));
+      const objectivesDiv = document.getElementById('objectives');
+      if(!verdictTitle || !objectivesTitle || !objectivesDiv) return;
+
+      // Find original right card
+      const rightCard = verdictTitle.closest('section.card') || objectivesTitle.closest('section.card');
+      const parent = rightCard.parentNode;
+
+      // Build new cards
+      const cardVerdict = document.createElement('section'); cardVerdict.className='card'; cardVerdict.id='sec-verdict';
+      const cardObj = document.createElement('section'); cardObj.className='card'; cardObj.id='sec-objectifs';
+
+      // Move nodes into the new cards
+      const verdictWrap = verdictTitle.nextElementSibling; // .verdictWrap
+      cardVerdict.appendChild(verdictTitle);
+      if(verdictWrap) cardVerdict.appendChild(verdictWrap);
+
+      cardObj.appendChild(objectivesTitle);
+      cardObj.appendChild(objectivesDiv);
+
+      // Insert new cards after the original, then remove original
+      parent.insertBefore(cardVerdict, rightCard.nextSibling);
+      parent.insertBefore(cardObj, cardVerdict.nextSibling);
+
+      // Remove all <div class="hr"> separators that were around these blocks inside the old card
+      [...rightCard.querySelectorAll('.hr')].forEach(hr=> hr.remove());
+
+      // If the old rightCard is now empty, remove it to avoid empty block
+      setTimeout(()=>{
+        if(!rightCard.textContent.trim()) rightCard.remove();
+      }, 0);
+    }catch(e){ console.error('splitVerdictAndObjectives', e); }
+  }
+  window.addEventListener('load', splitVerdictAndObjectives);
+
+  
+  function ensureTwoRightCards(){
+    try{
+      // Find original right column card (the one that currently contains both)
+      const rightCards = [...document.querySelectorAll('section.card')];
+      const hasVerdictTitle = (el)=> !!el.querySelector('h3.verdictTitle');
+      const container = rightCards.find(el => hasVerdictTitle(el))?.parentNode || document.querySelector('.grid');
+      if(!container) return;
+
+      // Get existing pieces
+      const verdictTitle = document.querySelector('h3.verdictTitle');
+      const verdictWrap  = verdictTitle ? verdictTitle.nextElementSibling : null;
+
+      const objTitle = [...document.querySelectorAll('h3')].find(h=> h.textContent.trim().startsWith('🎯 Objectifs'));
+      const objDiv   = document.getElementById('objectives');
+
+      // Create/ensure cards
+      let cardVerdict = document.getElementById('sec-verdict');
+      if(!cardVerdict){
+        cardVerdict = document.createElement('section'); cardVerdict.className='card'; cardVerdict.id='sec-verdict';
+        container.appendChild(cardVerdict);
+      }
+      let cardObj = document.getElementById('sec-objectifs');
+      if(!cardObj){
+        cardObj = document.createElement('section'); cardObj.className='card'; cardObj.id='sec-objectifs';
+        container.appendChild(cardObj);
+      }
+
+      // Fill verdict card
+      if(verdictTitle){
+        cardVerdict.innerHTML='';
+        cardVerdict.appendChild(verdictTitle);
+        if(verdictWrap) cardVerdict.appendChild(verdictWrap);
+      }
+
+      // Fill objectives card
+      if(objTitle && objDiv){
+        cardObj.innerHTML='';
+        cardObj.appendChild(objTitle);
+        cardObj.appendChild(objDiv);
+      }else{
+        // Fallback content
+        cardObj.innerHTML = '<h3 style="margin:0 0 6px 0;font-size:16px">🎯 Objectifs</h3><div id="objectives"></div>';
+      }
+    }catch(e){ console.error('ensureTwoRightCards', e); }
+  }
+  window.addEventListener('load', ensureTwoRightCards);
+
+  // UI
+  // --- Paging + Wrappers init (safe after DOM) ---
+  function initUIPaging(){
+    try{
+      // Build wrappers if not present
+      const hasWrap = document.querySelector('.section-wrap');
+      if(!hasWrap){
+        // Create needed wrappers
+        const wBoutique = ensureWrapperAround('🏬 Boutique', 'sec-boutique');
+        const wObjectifs = ensureWrapperAround('🎯 Objectifs', 'sec-objectifs');
+        const wVerdict = ensureWrapperAround('🗣️ Verdict clients', 'sec-verdict');
+        const wFin = ensureWrapperAround('📈 Finances', 'sec-finances');
+        const wJournal = ensureWrapperAround('📰 Journal', 'sec-journal');
+        const wConcur = ensureWrapperAround('⚔️ Concurrence', 'sec-concurrence');
+        // Insert loan card if finances exist
+        const loanCard = document.getElementById('sec-loan');
+        if(!loanCard && wFin && wFin.parentNode){
+          const lc = document.createElement('div');
+          lc.id='sec-loan';
+          lc.innerHTML = `<h3 style="margin:0 0 6px 0;font-size:16px">🏦 Prêt & Dette</h3>
+          <div class="muted">Dette actuelle : <b><span id="debtStat">0</span>€</b> • Taux: <span id="loanRateSpan">0</span>%/semaine</div>
+          <div class="row" style="margin-top:8px;gap:8px">
+            <button id="openLoan" class="secondary" type="button">Gérer le prêt</button>
+          </div>
+          <div class="hr"></div>`;
+          wFin.parentNode.insertBefore(lc, wFin.nextSibling);
+        }
+      }
+      // Build monthly table container if absent
+      if(!document.getElementById('sec-monthly')){
+        const fin = document.getElementById('sec-finances');
+        if(fin && fin.parentNode){
+          const monthlyBox = document.createElement('div');
+          monthlyBox.id='sec-monthly';
+          monthlyBox.innerHTML = `<h3 style="margin:0 0 6px 0;font-size:16px">🗓️ Bilans mensuels (année courante)</h3>
+          <div class="scrollbox" style="margin-top:6px">
+            <table><thead><tr><th>Mois</th><th>Revenus</th><th>Coûts</th><th>Intérêts</th><th>Net</th></tr></thead>
+            <tbody id="monthTable"></tbody></table>
+          </div>
+          <div class="hr"></div>`;
+          fin.parentNode.insertBefore(monthlyBox, fin.nextSibling);
+        }
+      }
+      // Hook loan button (delegated)
+      document.body.addEventListener('click', (e)=>{
+        const loanBtn = e.target.closest('#openLoan');
+        if(loanBtn){ loanModal.classList.add('show'); }
+      });
+      // Event delegation for navbar clicks
+      document.body.addEventListener('click', (e)=>{
+        const btn = e.target.closest('.navbar-bottom .nav-btn');
+        if(!btn) return;
+        showPage(btn.dataset.page);
+      });
+      // Initial page
+      showPage('home');
+      // Initial refresh monthly
+      refreshMonthTable();
+    }catch(err){ console.error('initUIPaging error', err); }
+  }
+  window.addEventListener('load', initUIPaging);
+
+  function updateUI(){
+    ensureObjectives?.(); evalObjectives?.(); renderObjectives?.();
+    ensureObjectives(); evalObjectives(); renderObjectives();
+    updateCompetitorsUI();
+    moneyV.textContent=fmt(S.money); stockV.textContent=fmt(S.stock); repV.textContent=fmt(S.reputation); debtV.textContent=fmt(S.debt);
+    turnV.textContent=S.turn; turnMini.textContent=S.turn;
+    const debtStat=document.getElementById('debtStat'); if(debtStat) debtStat.textContent=fmt(S.debt);
+    const loanRateSpan=document.getElementById('loanRateSpan'); if(loanRateSpan) loanRateSpan.textContent=Math.round(S.preset.loanRate*100);
+ priceI.value=S.price; qualityS.value=S.quality;
+    let {prodCost}=qualityParams(S.quality); prodCost*=(1-0.04*S.upgrades.rnd); prodCostHint.textContent=fmt(prodCost);
+    sellBtn.disabled=S.soldThisTurn||S.stock<=0; nextBtn.disabled=false;
+    document.getElementById('shopLvl').textContent=S.shopLevel;
+    const low= (6+4*S.shopLevel)-2, high=(6+4*S.shopLevel)+4; const eventNote=S.temp.demandFactor!==0?` (événements: ${(S.temp.demandFactor>0?'+':'')}${Math.round(S.temp.demandFactor*100)}%)`:''; const mktNote=S.upgrades.mkt>0?` (+${S.upgrades.mkt*5}% marketing)`:'';
+    document.getElementById('shopDesc').textContent=`Capacité clients/jour de base : ${low}–${high}${mktNote} (avant réputation)${eventNote}`;
+    document.getElementById('shopCost').textContent=fmt(Math.ceil(upgradeShopCost(S.shopLevel)));
+    document.getElementById('mktLvl').textContent=S.upgrades.mkt; document.getElementById('mktCost').textContent=fmt(Math.ceil(upgradeLinearCost(150,S.upgrades.mkt)));
+    document.getElementById('svcLvl').textContent=S.upgrades.svc; document.getElementById('svcCost').textContent=fmt(Math.ceil(upgradeLinearCost(150,S.upgrades.svc)));
+    document.getElementById('rndLvl').textContent=S.upgrades.rnd; document.getElementById('rndCost').textContent=fmt(Math.ceil(upgradeLinearCost(180,S.upgrades.rnd)));
+    logCleanSel.value=S.settings.logCleanup; logCleanHint.textContent=`(actuel : ${labelForCleanup(S.settings.logCleanup)})`;
+    updateDiffUI();
+    refreshFinanceTable();
+  }
+  function pushLog(t){ const p=document.createElement('div'); p.className='log'; p.textContent=`Tour ${S.turn}: ${t}`; logDiv.prepend(p); }
+
+  // EVENTS
+  function resetTempMods(){ S.temp={demandFactor:0,convAdd:0,repDelta:0,moneyDelta:0,notes:[]}; }
+  const EVENTS=[
+    function influenceurLocal(){ S.temp.demandFactor+=0.15; S.temp.convAdd+=0.03; S.temp.repDelta+=+1; S.temp.notes.push("Buzz local : afflux de clients (+15%), conversion +0,03, réputation +1"); },
+    function mauvaiseCritiqueVirale(){ S.temp.demandFactor-=0.10; S.temp.repDelta+= -3 - Math.floor(Math.random()*3); S.temp.notes.push("Mauvaise critique virale : demande -10%, réputation baisse."); },
+    function greveTransports(){ S.temp.demandFactor-=0.20; S.temp.notes.push("Grève transports : moins de clients (-20%)."); },
+    function meteoPluvieuse(){ S.temp.demandFactor-=0.08; S.temp.notes.push("Grosse pluie : fréquentation en baisse (-8%)."); },
+    function marcheEnPleinEssor(){ S.temp.demandFactor+=0.20; S.temp.notes.push("Marché en essor : plus de clients (+20%)."); },
+    function controleQualite(){ if(S.quality==='low'){ S.temp.repDelta+=-4; S.temp.notes.push("Contrôle qualité : ta qualité basse est pointée du doigt (réputation -4)."); } else { S.temp.repDelta+=+1; S.temp.notes.push("Contrôle qualité réussi : réputation +1."); } },
+    function subventionMunicipale(){ const bonus=100+Math.floor(Math.random()*201); S.temp.moneyDelta+=bonus; S.temp.notes.push(`Subvention municipale : +${bonus}€.`); },
+    function penurieFournisseurs(){ S.temp.notes.push("Pénurie fournisseurs : coûts de production +10% ce tour."); },
+    function microPannes(){ S.temp.convAdd-=0.05; S.temp.notes.push("Micro-pannes en boutique : conversion -0,05."); }
+  ];
+  function rollRandomEvent(){
+    resetTempMods();
+    if(Math.random()<0.65){ const ev=EVENTS[Math.floor(Math.random()*EVENTS.length)]; ev(); }
+    else { S.temp.notes.push("Rien de spécial aujourd'hui."); }
+    if(S.temp.repDelta!==0){ S.reputation=clamp(S.reputation+S.temp.repDelta,0,100); }
+    if(S.temp.moneyDelta!==0){ S.money+=S.temp.moneyDelta; S.fin.rev+=S.temp.moneyDelta; }
+    S.temp.notes.forEach(n=>pushLog(n));
+  }
+
+  // ACTIONS
+  // Difficulty selection (start)
+  document.querySelectorAll('#startModal [data-diff]').forEach(btn=> btn.addEventListener('click', ()=>startWith(btn.getAttribute('data-diff'))));
+  function startWith(d){
+    S.diff=d; S.preset=PRESETS[d];
+    S.money=S.preset.money; S.stock=S.preset.stock; S.reputation=S.preset.rep; S.debt=0;
+    S.turn=1; S.soldThisTurn=false; S.lowQStreak=0; S.upgrades={mkt:0,svc:0,rnd:0}; S.shopLevel=1;
+    S.finRows=[]; resetFinAcc(); totalSold=0; totalProduced=0; S.objectives=[]; refillObjectives();
+    logDiv.innerHTML='';
+    pushLog(`Nouvelle partie (${PRESETS[d].label}). Cash ${S.money}€, réputation ${S.reputation}.`);
+    startModal.classList.remove('show');
+    rollRandomEvent(); updateUI();
+  }
+
+  // Change difficulty in Options (doesn't reset state)
+  applyDiff.addEventListener('click', ()=>{
+    const d=diffSel.value;
+    S.diff=d; S.preset=PRESETS[d];
+    updateDiffUI();
+    pushLog(`Difficulté changée → ${PRESETS[d].label}. Les nouveaux <charges/banque/intérêt> s'appliquent dès maintenant.`);
+    updateUI();
+  });
+
+  // Price & Quality
+  priceI.addEventListener('input', ()=>{ S.price=Math.max(0,+priceI.value||0); });
+  qualityS.addEventListener('change', ()=>{ S.quality=qualityS.value; updateUI(); });
+
+  // Production
+  produceBtn.addEventListener('click', ()=>{
+    const qty=Math.max(0,Math.floor(+prodQtyI.value||0));
+    let {prodCost}=qualityParams(S.quality);
+    prodCost*=(1-0.04*S.upgrades.rnd);
+    if(S.temp.notes.some(n=>n.includes("Pénurie fournisseurs"))){ prodCost*=1.10; }
+    const cost=qty*prodCost;
+    if(qty<=0){ pushLog("Production annulée (quantité ≤ 0)."); return; }
+    S.stock+=qty; S.money-=cost; S.fin.prod+=cost; totalProduced+=qty;
+    pushLog(`Production de ${qty} unités (coût ${fmt(cost)}€).`);
+    updateUI(); checkGameOver();
+  });
+
+  // Upgrades
+  function openUpgradeModal(summaryHtml){ [reportModal, helpModal, optModal, goModal, loanModal].forEach(m=>m.classList.remove('show')); upSummary.innerHTML=summaryHtml; upModal.classList.add('show'); }
+  function doUpgrade(kind){
+    let cost=0,before='',after='',title='';
+    if(kind==='shop'){
+      cost=Math.ceil(upgradeShopCost(S.shopLevel));
+      if(S.money<cost){ showToast("Fonds insuffisants pour améliorer la boutique."); return; }
+      const oldLow= (6+4*S.shopLevel)-2, oldHigh=(6+4*S.shopLevel)+4;
+      S.money-=cost; S.shopLevel+=1;
+      const newLow= (6+4*S.shopLevel)-2, newHigh=(6+4*S.shopLevel)+4;
+      title="Boutique"; before=`Clients/jour de base : ${oldLow}–${oldHigh}`; after=`Clients/jour de base : ${newLow}–${newHigh}`;
+      S.fin.upgrades+=cost; pushLog(`Boutique améliorée au niveau ${S.shopLevel} (−${fmt(cost)}€).`);
+    } else if(kind==='mkt'){
+      cost=Math.ceil(150*Math.pow(1.5,S.upgrades.mkt));
+      if(S.money<cost){ showToast("Fonds insuffisants pour Marketing."); return; }
+      S.money-=cost; S.upgrades.mkt+=1;
+      title="Marketing"; before=`Bonus de demande : +${(S.upgrades.mkt-1)*5}%`; after=`Bonus de demande : +${(S.upgrades.mkt)*5}%`;
+      S.fin.upgrades+=cost; pushLog(`Marketing niveau ${S.upgrades.mkt} (−${fmt(cost)}€).`);
+    } else if(kind==='svc'){
+      cost=Math.ceil(150*Math.pow(1.5,S.upgrades.svc));
+      if(S.money<cost){ showToast("Fonds insuffisants pour Service clients."); return; }
+      S.money-=cost; S.upgrades.svc+=1;
+      title="Service clients"; before=`Bonus conversion : +${((S.upgrades.svc-1)*0.03).toFixed(2)}`; after=`Bonus conversion : +${(S.upgrades.svc*0.03).toFixed(2)}`;
+      S.fin.upgrades+=cost; pushLog(`Service clients niveau ${S.upgrades.svc} (−${fmt(cost)}€).`);
+    } else if(kind==='rnd'){
+      cost=Math.ceil(180*Math.pow(1.5,S.upgrades.rnd));
+      if(S.money<cost){ showToast("Fonds insuffisants pour R&D."); return; }
+      S.money-=cost; S.upgrades.rnd+=1;
+      title="R&D"; before=`Réduction coût prod : −${(S.upgrades.rnd-1)*4}%`; after=`Réduction coût prod : −${(S.upgrades.rnd)*4}%`;
+      S.fin.upgrades+=cost; pushLog(`R&D niveau ${S.upgrades.rnd} (−${fmt(cost)}€).`);
+    }
+    openUpgradeModal(`<b>${title}</b><br>${before} → <b>${after}</b>`);
+    updateUI(); checkGameOver();
+  }
+  document.getElementById('upgradeShopBtn').addEventListener('click', ()=>doUpgrade('shop'));
+  document.getElementById('upgradeMktBtn').addEventListener('click',  ()=>doUpgrade('mkt'));
+  document.getElementById('upgradeSvcBtn').addEventListener('click',  ()=>doUpgrade('svc'));
+  document.getElementById('upgradeRndBtn').addEventListener('click',  ()=>doUpgrade('rnd'));
+  closeUp.addEventListener('click', ()=> upModal.classList.remove('show'));
+
+  // Selling
+  function sellOnce(){
+    if(S.soldThisTurn){ pushLog("Vente déjà effectuée ce tour."); return; }
+    if(S.stock<=0){ pushLog("Vente impossible : stock vide."); return; }
+    const {qBonus, basePrice, qLabel}=qualityParams(S.quality);
+    const customers=calcCustomersToday();
+    const pen=pricePenalty(S.price, basePrice);
+    let conversion=0.45 + (qBonus*0.15) + pen + S.temp.convAdd + (0.03*S.upgrades.svc);
+    conversion=clamp(conversion,0.05,0.95);
+    let potentialDemand=Math.max(0,Math.round(customers*conversion));
+    { const comp = Math.min(80, Math.max(0, totalCompetitorShare())); const factor = Math.max(0.2, 1 - (comp/100)*0.8); potentialDemand = Math.floor(potentialDemand * factor); }
+    let unitsSold=Math.min(S.stock, potentialDemand);
+    const jitter=Math.floor((Math.random()*3)-1);
+    unitsSold=clamp(unitsSold + jitter,0,S.stock);
+    const revenue=unitsSold*S.price;
+    S.stock-=unitsSold; S.money+=revenue; S.soldThisTurn=true; S.fin.rev+=revenue; totalSold+=unitsSold;
+    const unmet=Math.max(0,potentialDemand-unitsSold);
+    let satisfaction=0; satisfaction+=qBonus; satisfaction+=-Math.max(0,-pen); satisfaction+=-(unmet>0?0.4:0);
+    let repDelta=(satisfaction*(0.6+unitsSold*0.02)); repDelta=clamp(repDelta,-6,+6); if(S.price>basePrice*1.6) repDelta-=1.2;
+    const oldRep=S.reputation; S.reputation=clamp(S.reputation+repDelta,0,100);
+    if(S.quality==='low'){ S.lowQStreak+=1; } else { S.lowQStreak=0; }
+    const pPer=pricePerception(S.price, basePrice); const qPer=qualityPerception(qLabel); const verdict=overallVerdict(pPer.cls,qPer.cls);
+    S.lastReport={turn:S.turn, customers, potentialDemand, unitsSold, revenue, satisfaction:+satisfaction.toFixed(2), repChange:+(S.reputation-oldRep).toFixed(2), pricePerceived:pPer.label, qualityPerceived:qPer.label, verdict:verdict.label, verdictClass:verdict.cls, notes:[...S.temp.notes]};
+    setVerdictUI(verdict.label, verdict.cls, pPer.label, qPer.label, satisfaction);
+    pushLog(`Vente effectuée : ${unitsSold} u. (${fmt(revenue)}€).`); updateUI(); checkGameOver();
+  }
+  document.getElementById('sellBtn').addEventListener('click', sellOnce);
+
+  // Loans
+  document.getElementById('loanBtn').addEventListener('click', ()=>{ loanRateSpan.textContent=Math.round(S.preset.loanRate*100); loanModal.classList.add('show'); });
+  takeLoanBtn.addEventListener('click', ()=>{ const amt=Math.max(0,Math.floor(+loanAmountI.value||0)); if(amt<=0) return; S.money+=amt; S.debt+=amt; pushLog(`Prêt bancaire +${fmt(amt)}€ (dette ${fmt(S.debt)}€).`); updateUI(); });
+  repayLoanBtn.addEventListener('click', ()=>{ let amt=Math.max(0,Math.floor(+repayAmountI.value||0)); if(amt<=0) return; amt=Math.min(amt,S.debt,S.money); S.money-=amt; S.debt-=amt; pushLog(`Remboursement prêt −${fmt(amt)}€ (reste ${fmt(S.debt)}€).`); updateUI(); });
+  closeLoan.addEventListener('click', ()=> loanModal.classList.remove('show'));
+
+  // End Turn
+  function endTurnAndShowReport(){
+    if(startModal.classList.contains('show')){ startWith('normal'); }
+    if(S.debt>0){
+      const interest=Math.ceil(S.debt*S.preset.loanRate);
+      S.debt+=interest; S.money-=interest; S.fin.interest+=interest;
+      pushLog(`Intérêts de la dette : −${fmt(interest)}€ (nouvelle dette ${fmt(S.debt)}€).`);
+    }
+    if(S.lowQStreak>=2){
+      let penalty=Math.min(5,0.8*S.lowQStreak);
+      S.reputation=clamp(S.reputation-penalty,0,100);
+      if(!S.lastReport) S.lastReport={turn:S.turn, customers:0,potentialDemand:0,unitsSold:0,revenue:0,satisfaction:0,repChange:0,pricePerceived:'—',qualityPerceived:'—',verdict:'—',notes:[]};
+      S.lastReport.notes.push(`Pénalité réputation pour spam qualité basse : −${penalty.toFixed(1)}`);
+      pushLog(`Qualité basse spammée (${S.lowQStreak} tours). Réputation −${penalty.toFixed(1)}.`);
+    }
+    const fixedCost=S.preset.chargesBase + (S.shopLevel-1)*S.preset.chargePerLvl;
+    S.money-=fixedCost; S.fin.charges+=fixedCost; pushLog(`Frais fixes du tour : −${fmt(fixedCost)}€.`);
+    const r=S.lastReport || {turn:S.turn, customers:0,potentialDemand:0,unitsSold:0,revenue:0,satisfaction:0,repChange:0,pricePerceived:'—',qualityPerceived:'—',verdict:'Aucune vente',notes:[]};
+    reportTurn.textContent=r.turn;
+    setVerdictUI(r.verdict, r.verdictClass||'mid', r.pricePerceived, r.qualityPerceived, r.satisfaction||0);
+    const net=S.fin.rev - (S.fin.prod + S.fin.upgrades + S.fin.charges + S.fin.interest);
+    const reasons=[`Événements: ${S.temp.notes.join(' | ') || 'aucun'}`,`Prix perçu: ${r.pricePerceived}`,`Qualité perçue: ${r.qualityPerceived}`,`Verdict clients: ${r.verdict}`].join('<br>');
+    reportBody.innerHTML=`Clients: ${r.customers} • Demande: ${r.potentialDemand}<br>Ventes: ${r.unitsSold} • Revenu: ${fmt(r.revenue)}€<br>Satisfaction: ${r.satisfaction} • Δ Réputation: ${r.repChange>=0?'+':''}${r.repChange}<br>Charges: ${fmt(S.fin.charges)}€ • Intérêts: ${fmt(S.fin.interest)}€ • <b>Net du tour: ${fmt(net)}€</b><br><br>${reasons}`;
+    reportModal.classList.add('show');
+    evalObjectives(); renderObjectives();
+    pushFinRow(); refreshMonthTable();
+    if(S.settings.logCleanup!=='never'){ const n=parseInt(S.settings.logCleanup,10); if(!isNaN(n) && (n===1 || (S.turn % n===0))){ logDiv.innerHTML=''; pushLog(`Nettoyage auto du journal (${labelForCleanup(S.settings.logCleanup)}).`);} }
+    S.turn+=1; S.soldThisTurn=false; S.lastReport=null; rollRandomEvent(); updateUI(); checkGameOver();
+  }
+  nextBtn.addEventListener('click', endTurnAndShowReport);
+  closeReport.addEventListener('click', ()=> reportModal.classList.remove('show'));
+
+  // Options & Save/Load
+  optionsBtn.addEventListener('click', ()=>{ diffSel.value=S.diff; updateDiffUI(); optModal.classList.add('show'); });
+  closeOpt.addEventListener('click', ()=> optModal.classList.remove('show'));
+  logCleanSel.addEventListener('change', ()=>{ S.settings.logCleanup=logCleanSel.value; pushLog(`Option: nettoyage du journal → ${labelForCleanup(S.settings.logCleanup)}.`); updateUI(); });
+  clearLogNow.addEventListener('click', ()=>{ logDiv.innerHTML=''; pushLog("Journal vidé manuellement."); updateUI(); });
+  saveBtn.addEventListener('click', ()=>{ const save={...S}; localStorage.setItem('startup_empire_v050', JSON.stringify(save)); localStorage.setItem('startup_empire_v402', JSON.stringify(save)); showToast("Partie sauvegardée."); });
+  loadBtn.addEventListener('click', ()=>{ let raw=localStorage.getItem('startup_empire_v050'); if(!raw){ raw=localStorage.getItem('startup_empire_v402'); } if(!raw){ showToast("Aucune sauvegarde trouvée."); return; } const data=JSON.parse(raw); Object.assign(S,data); updateUI(); showToast("Partie chargée."); });
+  optReset.addEventListener('click', ()=>{
+    localStorage.removeItem('startup_empire_v402');
+    // Reset + show start modal again
+    S.diff='normal'; S.preset=PRESETS.normal; S.money=0; S.stock=0; S.reputation=50; S.debt=0; S.shopLevel=1; S.turn=1; S.soldThisTurn=false; S.lowQStreak=0; S.upgrades={mkt:0,svc:0,rnd:0}; S.lastReport=null; S.finRows=[]; resetFinAcc(); logDiv.innerHTML=''; totalSold=0; totalProduced=0; S.objectives=[]; resetTempMods(); updateUI();
+    startModal.classList.add('show');
+  });
+
+  helpBtn.addEventListener('click', ()=> helpModal.classList.add('show'));
+  closeHelp.addEventListener('click', ()=> helpModal.classList.remove('show'));
+  closeMonth.addEventListener('click', ()=> monthModal.classList.remove('show'));
+
+  // Reset & Game over
+  function openGameOver(reason){
+    const recap=`Raison : ${reason}
+• Tours joués : ${S.turn}
+• Réputation finale : ${fmt(S.reputation)}
+• Argent final : ${fmt(S.money)}€
+• Dette : ${fmt(S.debt)}€
+• Stock restant : ${fmt(S.stock)}
+• Niveau boutique : ${S.shopLevel}
+• Upgrades: Mkt ${S.upgrades.mkt} | Svc ${S.upgrades.svc} | R&D ${S.upgrades.rnd}`.replace(/\\n/g,'<br>');
+    goSummary.innerHTML=recap; goModal.classList.add('show');
+  }
+  function checkGameOver(){
+    if(S.money < S.preset.bankruptcy){ openGameOver(`Trésorerie trop négative (seuil ${S.preset.bankruptcy}€).`); return true; }
+    if(S.reputation<=0){ openGameOver('Réputation tombée à 0.'); return true; }
+    return false;
+  }
+  document.getElementById('resetBtn').addEventListener('click', ()=>{ goModal.classList.remove('show'); optReset.click(); });
+
+  // INIT: wait for difficulty; if "Tour suivant" direct, handler auto-start Normal.
+})();
+</script>
+
+<!-- Bottom Nav -->
+<div class="navbar-bottom" id="navbar">
+  <div class="nav-btn active" data-page="home">🏠 Accueil</div>
+  <div class="nav-btn" data-page="stats">🧮 Statistiques</div>
+  <div class="nav-btn" data-page="concur">📈 Concurrence</div>
+</div>
+
+</body>
+</html>
